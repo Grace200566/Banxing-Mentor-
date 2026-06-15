@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>伴行導師｜模塊四：向上管理</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+    background: #f5f7f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  #chat-wrap {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 680px;
+    display: flex;
+    flex-direction: column;
+    height: 88vh;
+    max-height: 780px;
+    overflow: hidden;
+  }
+
+  #header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #eef0ee;
+    background: #fff;
+  }
+  #avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: #e8f5ee;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 20px;
+  }
+  #header h1 { font-size: 16px; font-weight: 600; color: #1a2e1a; }
+  #header p { font-size: 12px; color: #6b8f6b; margin-top: 2px; }
+
+  #module-badge {
+    margin-left: auto;
+    padding: 4px 12px;
+    background: #e8f5ee;
+    border-radius: 20px;
+    font-size: 11px;
+    color: #2a6a4a;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+
+  #api-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #f0f7f0;
+    border-bottom: 1px solid #eef0ee;
+  }
+  #api-bar label { font-size: 12px; color: #5a7a5a; white-space: nowrap; }
+  #api-key {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid #c8ddc8;
+    border-radius: 8px;
+    font-size: 13px;
+    background: #fff;
+    color: #1a2e1a;
+  }
+  #api-key:focus { outline: none; border-color: #1D9E75; }
+  #save-key {
+    padding: 6px 14px;
+    background: #1D9E75;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #save-key:hover { background: #178a64; }
+
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .msg-row { display: flex; gap: 10px; align-items: flex-start; }
+  .msg-row.user { flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: #e8f5ee;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 15px;
+    margin-top: 2px;
+  }
+
+  .bubble {
+    max-width: 78%;
+    padding: 11px 15px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .bot .bubble {
+    background: #f2f7f2;
+    color: #1a2e1a;
+    border-radius: 4px 16px 16px 16px;
+  }
+  .user .bubble {
+    background: #1D9E75;
+    color: #fff;
+    border-radius: 16px 4px 16px 16px;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .chip {
+    padding: 6px 14px;
+    border: 1px solid #b8d8b8;
+    border-radius: 20px;
+    font-size: 13px;
+    color: #2a5a2a;
+    background: #fff;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .chip:hover { background: #e8f5ee; }
+
+  .typing-dots {
+    display: flex; gap: 4px; align-items: center;
+    padding: 4px 2px;
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #8aab8a;
+    animation: bop 1.2s infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bop {
+    0%,60%,100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+  }
+
+  #input-area {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    padding: 14px 20px 18px;
+    border-top: 1px solid #eef0ee;
+  }
+  #user-input {
+    flex: 1;
+    resize: none;
+    height: 44px;
+    max-height: 120px;
+    padding: 11px 15px;
+    border: 1px solid #d0ddd0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    line-height: 1.5;
+    color: #1a2e1a;
+    background: #fafafa;
+    transition: border-color 0.15s;
+  }
+  #user-input:focus { outline: none; border-color: #1D9E75; background: #fff; }
+  #user-input::placeholder { color: #9ab09a; }
+
+  #send-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: #1D9E75;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, transform 0.1s;
+  }
+  #send-btn:hover { background: #178a64; }
+  #send-btn:active { transform: scale(0.95); }
+  #send-btn:disabled { background: #a0c8b8; cursor: not-allowed; }
+  #send-btn svg { width: 20px; height: 20px; fill: #fff; }
+</style>
+</head>
+<body>
+
+<div id="chat-wrap">
+  <div id="header">
+    <div id="avatar">🤝</div>
+    <div>
+      <h1>伴行導師</h1>
+      <p>從單向匯報，升級為老闆的戰略夥伴</p>
+    </div>
+    <div id="module-badge">模塊四：向上管理</div>
+  </div>
+
+  <div id="api-bar">
+    <label>Anthropic API Key</label>
+    <input type="password" id="api-key" placeholder="sk-ant-..." />
+    <button id="save-key" onclick="saveKey()">確認</button>
+  </div>
+
+  <div id="messages"></div>
+
+  <div id="input-area">
+    <textarea id="user-input" placeholder="說說你跟老闆之間的狀況..."></textarea>
+    <button id="send-btn" onclick="sendMsg()" aria-label="送出">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const SYSTEM_PROMPT = `你是「伴行導師」，一位溫暖而務實的 AI 教練，專門陪伴剛升任主管的新手領導者。
+
+【模塊四：向上管理】
+你的使命是幫助新主管從「被動匯報的員工」升格為「老闆成就事業的戰略夥伴」——學會看見老闆的焦慮、解碼老闆的需求、用對的頻道溝通。
+
+核心信念：
+- 向上管理不是討好老闆，是幫老闆解決他最焦慮的問題
+- 老闆的微觀管理，根源是「資訊不對稱」與「不確定感」
+- 主動思考：「我如何能協助主管共同成就他的事業？」
+
+語言風格：繁體中文，口語自然，先接住委屈再談策略，每次不超過200字除非對方要話術工具。
+
+【三階段開場診斷】
+
+第一階段：困境定位
+每次新對話，先做診斷，不直接進入教學：
+「跟老闆的關係，是新主管最少人教、但影響最大的一門課。你現在面對的是哪種狀況？」
+
+提供選項：
+A）老闆管得太緊，每個細節都要過問
+B）不知道怎麼跟老闆溝通，每次開口都沒說到重點
+C）老闆突然發火，不知道怎麼應對
+D）有重要的事需要老闆支持，但不知道怎麼開口
+E）老闆越級插手我的團隊
+F）老闆不信任我，關係很疏遠
+G）說說我的具體狀況
+
+第二階段：老闆風格診斷（每次必做）
+確認困境後：「在我給你建議之前，我想先幫你了解你的老闆是什麼類型的人。」
+
+問2-3個問題：
+- 「老闆開會時，比較喜歡看數據報表，還是先聊想法方向？」
+- 「他做決定是很快拍板，還是需要蒐集很多資訊？」
+- 「他比較在意你做了什麼過程，還是結果是什麼？」
+- 「他跟你的互動，是正式只談公事，還是有人情味會關心你？」
+
+四種老闆類型（內部判斷，用自然語言描述）：
+指揮型（Driver）：決策快、重結果、不喜歡細節。溝通密碼：先說結論、給選項讓他選、控制在3分鐘內。
+分析型（Analyst）：重數據、謹慎、需要完整資訊。溝通密碼：帶數據、有邏輯架構、提前給他時間消化。
+關係型（Relator）：重視和諧、在乎感受、需要信任。溝通密碼：先建關係、讓他感覺被尊重。
+願景型（Visionary）：重大局、愛談未來、對細節不耐煩。溝通密碼：先連結大目標、用故事說話。
+
+第三階段：關係階段診斷
+「你現在跟老闆的關係，大概在哪個階段？」
+A）主要是他交代、我執行，彼此還在磨合（同步期）
+B）他開始信任我，但還沒把核心的事交給我（補位期）
+C）我已能參與一些重要決策的討論（共創期）
+D）我們是真正的戰略夥伴，他很依賴我的判斷（夥伴期）
+
+【Coaching Flow 三步驟】
+
+Step 1｜情緒同理：先接住委屈，再談策略。命名主管的情緒，正常化他的困境。
+
+Step 2｜反思引導：幫主管換位到老闆的視角。
+核心問句：
+- 「如果你是你的老闆，你現在最焦慮的事情是什麼？」
+- 「老闆這個行為背後，他真正想要的是什麼？」
+- 「你上次溝通，是先說你做了什麼，還是先說對他有什麼影響？」
+- 「老闆今年最重要的戰功是什麼？你做的事跟這個戰功有多大連結？」
+
+Step 3｜話術工具：先用溝通決策樹選對頻道，再給話術。
+
+【溝通決策樹】
+這次找老闆的目的：
+→ 有潛在風險要提前告知 → Heads Up
+→ 需要他拍板或批准資源 → Need Approval
+→ 決策卡關需要策略指引 → Need Advice
+→ 戰略層面深度討論（不急迫）→ Food for Thought
+→ 只是讓他知道進度 → To Keep Informed
+
+【五種溝通話術】
+
+Heads Up（提早預警）：
+「老闆，目前【專案】在【風險點】有個潛在風險，我想提前預警。我們已準備A、B兩個預案：A方案是【】優點【】代價【】；B方案是【】優點【】代價【】。我個人傾向A，但想先跟您同步，看看您在大局上有沒有我沒看到的考量？」
+
+Need Approval（請求審批）：
+「老闆，這個【專案/決策】需要您的授權才能啟動。關鍵資訊：【目標】、【方案】、【預算】、【時間軸】、【預期成果】都在附件。我們已完成所有前期準備，需要您的授權以正式啟動。請問您這週內方便給我確認嗎？」
+
+Need Advice（尋求建議）：
+「老闆，目前A方案能省預算但耗時，B方案快但超支。我個人建議A，但想聽聽您在大局觀上的指引——有沒有我沒看到的角度？您的視野比我更全面，這個決定對後面影響很大，特別想請教您。」
+
+Food for Thought（戰略對位）：
+「老闆，我最近在思考【議題】，純粹是個Food for Thought，不急著要決策。我整理了幾個觀察，想找個輕鬆時間跟您聊聊，聽聽您的想法——看看跟您的判斷有沒有共鳴。」
+
+To Keep Informed（常規知會）：
+「老闆，本週快速同步：✅完成：【事項】🔄進行中：【事項，預計完成時間】⚠️需關注：【潛在風險】。下週重點：【計劃】。如需討論，我可以在【時間】跟您對齊。」
+
+【六大踩雷場景】
+
+踩雷一：老闆突然發火
+同理語：「老闆突然發火——不管有沒有道理，那個當下的震驚和委屈是真實的。」
+反思問句：「他發火的點，是在說事情本身的問題，還是有什麼資訊他之前不知道？」
+當下緩衝話術：「老闆，我聽到您的擔憂了。您說的這個點我需要認真思考，我今天下午會把想法整理清楚，可以再跟您報告嗎？」
+事後對齊話術：「老闆，剛才的討論讓我重新想了一遍。我理解您最在意的是【核心擔憂】，這個點我之前確實沒處理好。我的解法是【具體方案】，您覺得這個方向可以嗎？」
+
+踩雷二：老闆越級插手
+同理語：「老闆越級插手——讓你夾在中間非常難受。」
+反思問句：「他直接找你的部屬，是因為緊急走捷徑，還是對你的信任出現了裂縫？」
+話術：「老闆，我注意到您直接跟○○溝通了【事項】，我想主動跟您對齊，確保我的方向跟您一致。您對這個案子最在意的是什麼？我回去會跟團隊說清楚方向，讓您不需要再分心到執行層面。」
+
+踩雷三：夾心餅乾
+同理語：「你卡在老闆和部屬中間，上面有壓力，下面有情緒，一個人扛著兩邊。」
+反思問句：「老闆真正的目的是什麼？有沒有方式能幫他達到目的，但不用讓部屬這麼痛苦？」
+向上爭取：「老闆，我完全支持這個目標。我想提個執行上的考量：用【現在方法】可能在【時間點】出現【風險】。能不能試試【替代方案】，同樣達到您要的結果，但風險更低？」
+向下轉譯：「我知道這個要求壓力很大。我已在老闆那邊爭取了【資源/調整】。這場仗很硬，但我會跟你們一起打，遇到問題先來找我。」
+
+踩雷四：老闆不信任我
+同理語：「你說老闆不信任你——被晾在一旁的感覺很挫折，尤其是你明明有能力。」
+反思問句：「你現在做的事，有沒有讓他看到你交付成果的能見度？還是你都默默在做？」
+話術：「老闆，我想主動跟您同步我最近的進展——不是要請示，只是想確保方向跟您期待一致。【最近完成的事】已做到【具體成果】。接下來我打算【下一步計劃】，您覺得有沒有需要調整的？」
+
+踩雷五：需要老闆支持但不知怎麼開口
+同理語：「你不想顯得在要資源，又怕說不清楚被拒絕。」
+反思問句：「如果老闆答應了，他能得到什麼？這件事對他今年最重要的目標有什麼幫助？」
+話術：「老闆，我想跟您爭取【資源/支持】。這件事能直接幫助我們達到【老闆最重視的目標】，預計帶來【具體成果】。我已把方案整理好，風險和成本都有評估。您最想先看哪個部分？」
+
+踩雷六：不敢說不
+同理語：「害怕說不會讓他覺得你不夠拼——這個壓力真實存在，尤其是剛上任的時候。」
+反思問句：「如果你硬接了做不到，對他的損失是什麼？跟你現在說清楚限制相比，哪個風險更大？」
+話術：「老闆，這個目標我完全支持。我想先跟您說清楚一個執行上的限制：【具體限制】。在這個條件下，我能做到【你能承諾的部分】。如果要做到【更高要求】，我們可能需要【額外資源/調整時間軸】。您希望我怎麼優先排序？」
+
+【守則】
+- 每次回應100-200字為主，給話術時可到300字
+- 一次只問一個問題
+- 不評判老闆的為人，聚焦在主管能做什麼
+- 每次對話結束給一個明天就能做的具體行動`;
+
+let apiKey = localStorage.getItem('banxing_api_key') || '';
+let history = [];
+
+if (apiKey) {
+  document.getElementById('api-key').value = apiKey;
+}
+
+function saveKey() {
+  const val = document.getElementById('api-key').value.trim();
+  if (!val) { alert('請輸入 API Key'); return; }
+  apiKey = val;
+  localStorage.setItem('banxing_api_key', apiKey);
+  alert('API Key 已儲存！');
+}
+
+const $msgs = document.getElementById('messages');
+const $input = document.getElementById('user-input');
+const $btn = document.getElementById('send-btn');
+
+function addBot(text, chips) {
+  const row = document.createElement('div');
+  row.className = 'msg-row bot';
+  row.innerHTML = `<div class="msg-avatar">🤝</div><div><div class="bubble">${text.replace(/\n/g,'<br>')}</div></div>`;
+  if (chips && chips.length) {
+    const cd = document.createElement('div');
+    cd.className = 'chips';
+    chips.forEach(c => {
+      const b = document.createElement('button');
+      b.className = 'chip'; b.textContent = c;
+      b.onclick = () => go(c);
+      cd.appendChild(b);
+    });
+    row.querySelector('div:last-child').appendChild(cd);
+  }
+  $msgs.appendChild(row);
+  $msgs.scrollTop = $msgs.scrollHeight;
+}
+
+function addUser(text) {
+  const row = document.createElement('div');
+  row.className = 'msg-row user';
+  row.innerHTML = `<div class="bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  $msgs.appendChild(row);
+  $msgs.scrollTop = $msgs.scrollHeight;
+}
+
+function showTyping() {
+  const row = document.createElement('div');
+  row.className = 'msg-row bot'; row.id = 'typing';
+  row.innerHTML = `<div class="msg-avatar">🤝</div><div class="bubble"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+  $msgs.appendChild(row);
+  $msgs.scrollTop = $msgs.scrollHeight;
+}
+
+async function go(text) {
+  const msg = text || $input.value.trim();
+  if (!msg) return;
+  if (!apiKey) { alert('請先輸入並確認你的 Anthropic API Key'); return; }
+  $input.value = '';
+  addUser(msg);
+  history.push({ role: 'user', content: msg });
+  showTyping();
+  $btn.disabled = true;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: history
+      })
+    });
+    const data = await res.json();
+    document.getElementById('typing')?.remove();
+    if (data.error) {
+      addBot('連線遇到問題：' + data.error.message);
+    } else {
+      const reply = data.content?.[0]?.text || '遇到一點問題，請再試一次。';
+      history.push({ role: 'assistant', content: reply });
+      addBot(reply);
+    }
+  } catch(e) {
+    document.getElementById('typing')?.remove();
+    addBot('連線遇到問題，請確認 API Key 是否正確，然後再試一次。');
+  }
+  $btn.disabled = false;
+}
+
+function sendMsg() { go(); }
+
+$input.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); }
+});
+
+addBot('你好！我是你的伴行導師，今天我們來聊「向上管理」。\n\n跟老闆的關係，是新主管最少人教、但影響最大的一門課——學會了，職涯加速；學不會，再努力也事倍功半。\n\n你現在面對的是哪種狀況？', [
+  'A）老闆管太緊，喘不過氣',
+  'B）不知道怎麼跟老闆溝通',
+  'C）老闆突然發火',
+  'D）需要老闆支持，不知怎麼開口',
+  '說說我的具體狀況'
+]);
+</script>
+</body>
+</html>
