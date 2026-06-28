@@ -3,7 +3,508 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>伴行導師｜新任主<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>伴行導師｜新任主管 AI 教練</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang TC", "Noto Sans TC", sans-serif;
+    background: #f5f7f5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 16px;
+  }
+
+  #chat-wrap {
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+    width: 100%;
+    max-width: 680px;
+    display: flex;
+    flex-direction: column;
+    height: 88vh;
+    max-height: 780px;
+    overflow: hidden;
+  }
+
+  /* Header */
+  #header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-bottom: 1px solid #eef0ee;
+    background: #fff;
+  }
+  #avatar {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    background: #e8f5ee;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 20px;
+  }
+  #header h1 { font-size: 16px; font-weight: 600; color: #1a2e1a; }
+  #header p { font-size: 12px; color: #6b8f6b; margin-top: 2px; }
+
+  /* API Key Bar */
+  #api-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 20px;
+    background: #f0f7f0;
+    border-bottom: 1px solid #eef0ee;
+  }
+  #api-bar label { font-size: 12px; color: #5a7a5a; white-space: nowrap; }
+  #api-key {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid #c8ddc8;
+    border-radius: 8px;
+    font-size: 13px;
+    background: #fff;
+    color: #1a2e1a;
+  }
+  #api-key:focus { outline: none; border-color: #1D9E75; }
+  #save-key {
+    padding: 6px 14px;
+    background: #1D9E75;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-size: 13px;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  #save-key:hover { background: #178a64; }
+
+  /* Messages */
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .msg-row { display: flex; gap: 10px; align-items: flex-start; }
+  .msg-row.user { flex-direction: row-reverse; }
+
+  .msg-avatar {
+    width: 30px; height: 30px;
+    border-radius: 50%;
+    background: #e8f5ee;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    font-size: 15px;
+    margin-top: 2px;
+  }
+
+  .bubble {
+    max-width: 78%;
+    padding: 11px 15px;
+    border-radius: 16px;
+    font-size: 14px;
+    line-height: 1.7;
+  }
+  .bot .bubble {
+    background: #f2f7f2;
+    color: #1a2e1a;
+    border-radius: 4px 16px 16px 16px;
+  }
+  .user .bubble {
+    background: #1D9E75;
+    color: #fff;
+    border-radius: 16px 4px 16px 16px;
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+  }
+  .chip {
+    padding: 6px 14px;
+    border: 1px solid #b8d8b8;
+    border-radius: 20px;
+    font-size: 13px;
+    color: #2a5a2a;
+    background: #fff;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .chip:hover { background: #e8f5ee; }
+
+  /* Typing indicator */
+  .typing-dots {
+    display: flex; gap: 4px; align-items: center;
+    padding: 4px 2px;
+  }
+  .dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: #8aab8a;
+    animation: bop 1.2s infinite;
+  }
+  .dot:nth-child(2) { animation-delay: 0.2s; }
+  .dot:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes bop {
+    0%,60%,100% { transform: translateY(0); }
+    30% { transform: translateY(-6px); }
+  }
+
+  /* Input */
+  #input-area {
+    display: flex;
+    gap: 10px;
+    align-items: flex-end;
+    padding: 14px 20px 18px;
+    border-top: 1px solid #eef0ee;
+  }
+  #user-input {
+    flex: 1;
+    resize: none;
+    height: 44px;
+    max-height: 120px;
+    padding: 11px 15px;
+    border: 1px solid #d0ddd0;
+    border-radius: 12px;
+    font-size: 14px;
+    font-family: inherit;
+    line-height: 1.5;
+    color: #1a2e1a;
+    background: #fafafa;
+    transition: border-color 0.15s;
+  }
+  #user-input:focus { outline: none; border-color: #1D9E75; background: #fff; }
+  #user-input::placeholder { color: #9ab09a; }
+
+  #send-btn {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: #1D9E75;
+    border: none;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    transition: background 0.15s, transform 0.1s;
+  }
+  #send-btn:hover { background: #178a64; }
+  #send-btn:active { transform: scale(0.95); }
+  #send-btn:disabled { background: #a0c8b8; cursor: not-allowed; }
+  #send-btn svg { width: 20px; height: 20px; fill: #fff; }
+
+  /* Toolbar */
+  #toolbar {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    padding: 6px 20px;
+    background: #f9fbf9;
+    border-bottom: 1px solid #eef0ee;
+  }
+  .tool-btn {
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    cursor: pointer;
+    border: 1px solid #c8ddc8;
+    background: #fff;
+    color: #2a6a4a;
+    transition: background 0.15s;
+  }
+  .tool-btn:hover { background: #e8f5ee; }
+  .tool-btn.danger { border-color: #f0b8b8; color: #a04040; }
+  .tool-btn.danger:hover { background: #fff0f0; }
+</style>
+</head>
+<body>
+
+<div id="chat-wrap">
+  <div id="header">
+    <div id="avatar">🌱</div>
+    <div>
+      <h1>伴行導師</h1>
+      <p>管理路上雙向同行，從容扎根成長的陪伴者</p>
+    </div>
+  </div>
+
+  <div id="api-bar">
+    <label>Anthropic API Key</label>
+    <input type="password" id="api-key" placeholder="sk-ant-..." />
+    <button id="save-key" onclick="saveKey()">確認</button>
+  </div>
+
+  <div id="toolbar">
+    <button class="tool-btn" onclick="exportChat()">📥 匯出對話</button>
+    <button class="tool-btn danger" onclick="clearChat()">🗑 清除記錄</button>
+  </div>
+
+  <div id="messages"></div>
+
+  <div id="input-area">
+    <textarea id="user-input" placeholder="說說你現在的狀況，或直接問我..."></textarea>
+    <button id="send-btn" onclick="sendMsg()" aria-label="送出">
+      <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/>
+      </svg>
+    </button>
+  </div>
+</div>
+
+<script>
+const SYSTEM_PROMPT = `你是一位新任主管的隨身 AI 教練，名字叫「伴行導師」。
+你的定位是：管理路上雙向同行，從容扎根成長的陪伴者。
+你的風格是良師益友：溫暖但不濫情，堅定但不說教。你說話像一個見過很多主管成長故事的前輩——有智慧、有耐心、有時會說一句讓人心頭一緊的話，但那句話是為對方好。
+你不是聊天機器人，也不是知識百科。你是教練。教練不給答案，教練問對問題、陪人找到自己的答案，必要時給一個具體的工具或話術讓對方現在就能用。
+
+語言風格：繁體中文，口語自然像人說話，不用條列式轟炸，遇到情緒先接住再往下走，每次不超過200字除非對方要話術工具。
+
+【完整對話四階段流程】
+
+第一階段：破冰引導（心態轉變）
+每次新對話都從這裡開始，用問句帶使用者反思心態轉變：
+「成為主管之後，你覺得跟以前最大的不同是什麼？」
+
+接住他的回答，用心法強化：
+- 若說責任變重、壓力大→「對，這個位置的重量真的不一樣。過去成就感來自自己做完一件事，現在要學會從『我的部屬變得多厲害』找成就感。這個轉念，是當主管最核心的一關。」
+- 若說不知道怎麼帶人→「你說到了很多人沒意識到的事——過去讓你成功的技能，在主管位置上反而可能變成絆腳石。因為主管的工作不是自己做，是讓別人做好。」
+- 若說跟同事關係變尷尬→「這個感覺很真實。從同事變主管，身份變了，關係的邊界也要重新劃。這不是疏遠，是建立一種新的信任方式。」
+
+心法說完後自然過渡：「除了這個，還有什麼讓你比較卡關的，或是最近讓你頭痛的狀況？」
+
+第二階段：困境診斷與Coaching Flow
+路徑A：使用者描述具體情境→診斷雷區，用問句帶他自己看見，不直接說「你踩了雷區X」。
+路徑B：使用者不知從哪說起→提供六大雷區選單：
+🔴 凡事自己來｜部屬做不好，忍不住搶過來自己做
+🔴 急著證明自己｜上任就想大刀改革，卻遇到阻力
+🔴 不敢得罪人｜不好意思要求昔日同事，底線一再退讓
+🔴 夾心餅乾｜在老闆和部屬之間兩頭難做，變成傳話筒
+🔴 怕被部屬取代｜對強勢或資深部屬有防備心
+🔴 迴避衝突｜遇到部屬衝突或摩擦，傾向和稀泥
+
+Coaching Flow三步：①情緒同理②反思引導（一個有刺問句）③話術工具（現在就能用）
+
+困境時疊加心法：在給話術前後，自然疊加一句心法：「你剛才說的這個，其實跟一個很關鍵的轉念有關——[對應心法]。話術是工具，但心態轉過來了，用起來才會自然。」
+
+第三階段：演練模式
+Coaching Flow完成後邀請演練：「這些話術，說出口之前先練一次會更有把握。要不要我們來演練一下？你來當主管，我來當你的部屬——你開口，我接招。」
+也可角色互換：「你也可以先看我示範——你來當部屬，我當主管，感受一下那個溫度和節奏，再換你來試。」
+演練中扮演部屬要真實，有情緒、有藉口、有防禦，不要太配合。每2-3個回合出戲一次給回饋。
+演練結束後問：「這次演練，你覺得自己哪裡做得好？哪裡下次可以更好？」
+
+第四階段：30天行動框架
+演練結束後自然帶出：「新主管剛上任的前30天很關鍵，你有沒有想過要怎麼做，能讓這個過渡時期更順、更快進入真正高效的主管模式？」
+視回應提供五大軸心：
+1. 向上對齊：第1週安排1-on-1，釐清老闆期待與KPI
+2. 向下盤點：啟動「傾聽之旅」，每人一次1-on-1
+3. 建立威信：找部屬痛苦已久、一個決策就能解決的快速小獲勝
+4. 掌握環境：主動拜訪鄰近部門，請教協作改善點
+5. 能量管理：每天強迫留白30分鐘；找一位Mentor
+引導思考：「這五個軸心，你覺得你現在最需要先聚焦哪一個？」
+
+六大雷區知識庫：
+
+雷區一 凡事親力親為（身先士卒型）
+現象：部屬做太慢，主管搶過來自己做，導致主管過勞，部屬無舞台。
+心法：你親自做只要2小時，教部屬要4小時——但如果一年後你還是得幫他改一模一樣的報告，你這個「教練」是成功還是失敗的？
+反思問句：「你有沒有想過，你搶過來做的那件事，部屬下次還是不會做？這樣的循環，你打算維持多久？」
+話術（微授權）：「[名字]，架構是對的，但有兩個地方的邏輯你可以再優化。你試著調整這兩個地方，明天下午三點我們再對一次，我相信你這次能做到80分。」
+
+雷區二 急著證明自己（盲目改革型）
+現象：上任即大刀闊斧推翻舊制，引發老員工強烈反彈與抵制。
+心法：舊流程雖然沒效率，但在信任建立之前，過大的改變只會帶來不安全感，不是改革，是引爆。
+反思問句：「你想改的這個東西，你的部屬對你的了解，足夠讓他們相信你的改變是為了他們好嗎？」
+話術（傾聽問句）：把「我要改流程」轉為「我想請教大家，過去運作時最卡關的地方是什麼？我們有沒有可能一起做個小調整，讓大家少加點班？」
+
+雷區三 不敢得罪人（尋求認同型）
+現象：害怕與昔日平輩關係變緊繃，不敢要求績效，底線不斷被試探。
+心法：「當好人」，最後往往變成「害死團隊的爛好人」。
+反思問句：「你現在最擔心的，是失去那個人對你的好感，還是整個團隊的績效？哪個是你身為主管真正該負責的？」
+話術（公私分明）：「[名字]，私底下我們交情不變。但在辦公室，我的職責是確保整個團隊的績效。這次進度確實落後了，我很擔心你卡關。跟我說說你遇到什麼困難，我能怎麼幫你，讓我們在[日期]前趕上？」
+
+雷區四 夾心餅乾（逃避責任型）
+現象：面對老闆不合理要求，對部屬說「這是老闆硬要的，我也沒辦法」，喪失主管威信。
+心法：當你說「我也沒辦法」，你在告訴部屬：「我是個沒有影響力、無法保護你們的傳話筒。」
+反思問句：「你有沒有試過在老闆面前，替部屬爭取過什麼？就算沒成功，那個姿態對部屬意義很不一樣。」
+話術（目標轉譯）：「各位，這次目標挑戰性很高，我知道大家壓力大。但我已經爭取了[具體資源/調整]。這場仗很硬，但我會跟你們一起打。我們來拆解第一步需要做什麼？」
+
+雷區五 怕被部屬取代（防衛型）
+現象：面對實力強、資深或曾是競爭者的部屬產生防備，刻意邊緣化對方，導致內耗。
+心法：部屬越強，團隊戰績越好，這才是你升遷的墊腳石。
+反思問句：「你現在邊緣化他，一年後你的老闆看到的團隊成績，會說什麼故事？」
+話術（高能賦能）：「[名字]，你是團隊裡經驗最豐富的人。這次新專案難度很高，只有交給你主導我才放心。你儘管在前方衝刺，後方協調和資源爭取我來扛，我們一起把案子拿下來。」
+
+雷區六 迴避衝突（粉飾太平型）
+現象：面對部屬間推諉、摩擦時消極冷處理，各打五大板，導致是非不分、信任崩盤。
+心法：你的沉默，在犯錯的部屬眼裡其實是一種「默許」。
+反思問句：「你上次迴避的那個衝突，現在解決了嗎？還是它還在那裡，只是換了一個形狀？」
+話術（事實導向）：「現在把情緒放一邊，我們一條條來看：這個項目由誰負責對組織最有利？今天把規則定清楚，以後照制度走。」
+
+收尾：若使用者說夠了或謝謝，溫暖收尾：「好，這些先放心裡。管理這條路不急，慢慢走，我在這裡。」`;
+
+let apiKey = localStorage.getItem('banxing_api_key') || '';
+let history = [];
+
+const STORAGE_KEY = 'banxing_chat_module1';
+
+if (apiKey) {
+  document.getElementById('api-key').value = apiKey;
+}
+
+function saveKey() {
+  const val = document.getElementById('api-key').value.trim();
+  if (!val) { alert('請輸入 API Key'); return; }
+  apiKey = val;
+  localStorage.setItem('banxing_api_key', apiKey);
+  alert('API Key 已儲存！');
+}
+
+function saveHistory() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+}
+
+function exportChat() {
+  if (history.length === 0) { alert('目前沒有對話記錄可以匯出。'); return; }
+  const lines = history.map(m => {
+    const role = m.role === 'user' ? '【你】' : '【伴行導師】';
+    return role + '\n' + m.content;
+  }).join('\n\n---\n\n');
+  const blob = new Blob([lines], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = '伴行導師_模塊一_對話記錄.txt';
+  a.click();
+}
+
+function clearChat() {
+  if (!confirm('確定要清除所有對話記錄嗎？此動作無法復原。')) return;
+  history = [];
+  localStorage.removeItem(STORAGE_KEY);
+  document.getElementById('messages').innerHTML = '';
+  addBot('對話記錄已清除。你好，我是你的伴行導師。\n\n說說看，你現在最悶的是什麼？', ['我不知道從哪裡說起', '我剛上任，不知先做什麼']);
+}
+
+const $msgs = document.getElementById('messages');
+const $input = document.getElementById('user-input');
+const $btn = document.getElementById('send-btn');
+
+function addBot(text, chips) {
+  const row = document.createElement('div');
+  row.className = 'msg-row bot';
+  row.innerHTML = `<div class="msg-avatar">🌱</div><div><div class="bubble">${text.replace(/\n/g,'<br>')}</div></div>`;
+  if (chips && chips.length) {
+    const cd = document.createElement('div');
+    cd.className = 'chips';
+    chips.forEach(c => {
+      const b = document.createElement('button');
+      b.className = 'chip'; b.textContent = c;
+      b.onclick = () => go(c);
+      cd.appendChild(b);
+    });
+    row.querySelector('div:last-child').appendChild(cd);
+  }
+  $msgs.appendChild(row);
+  $msgs.scrollTop = $msgs.scrollHeight;
+}
+
+function addUser(text) {
+  const row = document.createElement('div');
+  row.className = 'msg-row user';
+  row.innerHTML = `<div class="bubble">${text.replace(/\n/g,'<br>')}</div>`;
+  $msgs.appendChild(row);
+  $msgs.scrollTop = $msgs.scrollHeight;
+}
+
+function showTyping() {
+  const row = document.createElement('div');
+  row.className = 'msg-row bot'; row.id = 'typing';
+  row.innerHTML = `<div class="msg-avatar">🌱</div><div class="bubble"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+  $msgs.appendChild(row);
+  $msgs.scrollTop = $msgs.scrollHeight;
+}
+
+async function go(text) {
+  const msg = text || $input.value.trim();
+  if (!msg) return;
+  if (!apiKey) { alert('請先輸入並確認你的 Anthropic API Key'); return; }
+  $input.value = '';
+  addUser(msg);
+  history.push({ role: 'user', content: msg });
+  saveHistory();
+  showTyping();
+  $btn.disabled = true;
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 1000,
+        system: SYSTEM_PROMPT,
+        messages: history
+      })
+    });
+    const data = await res.json();
+    document.getElementById('typing')?.remove();
+    if (data.error) {
+      addBot('連線遇到問題：' + data.error.message);
+    } else {
+      const reply = data.content?.[0]?.text || '遇到一點問題，請再試一次。';
+      history.push({ role: 'assistant', content: reply });
+      saveHistory();
+      addBot(reply);
+    }
+  } catch(e) {
+    document.getElementById('typing')?.remove();
+    addBot('連線遇到問題，請確認 API Key 是否正確，然後再試一次。');
+  }
+  $btn.disabled = false;
+}
+
+function sendMsg() { go(); }
+
+$input.addEventListener('keydown', e => {
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); }
+});
+
+// Load saved history or show welcome
+const saved = localStorage.getItem(STORAGE_KEY);
+if (saved) {
+  try {
+    history = JSON.parse(saved);
+    history.forEach(m => {
+      if (m.role === 'user') addUser(m.content);
+      else addBot(m.content);
+    });
+  } catch(e) {
+    history = [];
+    addBot('你好，我是你的伴行導師。\n\n管理這條路，剛開始走的時候最不容易——不是因為你能力不夠，而是沒有人告訴你，這個位置跟以前完全不一樣。\n\n說說看，你現在最悶的是什麼？', ['我不知道從哪裡說起', '我剛上任，不知先做什麼']);
+  }
+} else {
+  addBot('你好，我是你的伴行導師。\n\n管理這條路，剛開始走的時候最不容易——不是因為你能力不夠，而是沒有人告訴你，這個位置跟以前完全不一樣。\n\n說說看，你現在最悶的是什麼？', ['我不知道從哪裡說起', '我剛上任，不知先做什麼']);
+}
+</script>
+</body>
+</html>
+管 AI 教練</title>
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; }
 
