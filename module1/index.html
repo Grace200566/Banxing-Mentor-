@@ -363,6 +363,8 @@ Coaching Flow完成後邀請演練：「這些話術，說出口之前先練一�
 收尾：若使用者說夠了或謝謝，溫暖收尾：「好，這些先放心裡。管理這條路不急，慢慢走，我在這裡。」`;
 
 let apiKey = localStorage.getItem('banxing_api_key') || '';
+const urlKey = new URLSearchParams(window.location.search).get('key');
+if (urlKey) { apiKey = urlKey; localStorage.setItem('banxing_api_key', apiKey); }
 let history = [];
 
 const STORAGE_KEY = 'banxing_chat_module1';
