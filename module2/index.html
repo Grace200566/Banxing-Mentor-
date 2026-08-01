@@ -364,6 +364,8 @@ ARCI引導：當主管說不知道怎麼分工時，引導他用ARCI工具：A�
 - 不幫主管做決定，只幫他看清楚選項`;
 
 let apiKey = localStorage.getItem('banxing_api_key') || '';
+const urlKey = new URLSearchParams(window.location.search).get('key');
+if (urlKey) { apiKey = urlKey; localStorage.setItem('banxing_api_key', apiKey); }
 let history = [];
 
 const STORAGE_KEY = 'banxing_chat_module2';
