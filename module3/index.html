@@ -395,6 +395,8 @@ W（承諾）：所有人通用：「所以接下來你的第一步是什麼？�
 - 每次對話結束給一個明天就能做的具體行動`;
 
 let apiKey = localStorage.getItem('banxing_api_key') || '';
+const urlKey = new URLSearchParams(window.location.search).get('key');
+if (urlKey) { apiKey = urlKey; localStorage.setItem('banxing_api_key', apiKey); }
 let history = [];
 
 const STORAGE_KEY = 'banxing_chat_module3';
