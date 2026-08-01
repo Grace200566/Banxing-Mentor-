@@ -542,6 +542,8 @@ const stations = [
 let currentStation = 1;
 
 let apiKey = localStorage.getItem('banxing_m6_api_key') || '';
+const urlKey = new URLSearchParams(window.location.search).get('key');
+if (urlKey) { apiKey = urlKey; localStorage.setItem('banxing_m6_api_key', apiKey); }
 let history = [];
 
 const STORAGE_KEY = 'banxing_chat_module6';
